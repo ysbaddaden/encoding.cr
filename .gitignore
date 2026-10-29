@@ -1,0 +1,10 @@
+/docs/
+/lib/
+/shard.lock
+
+# artifacts
+/.cache/
+
+# LLM artifacts
+/.build/
+/bench/results/

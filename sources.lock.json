@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "sources": {
+    "whatwg": {
+      "repository": "whatwg/encoding",
+      "revision": "be17ac5c49881336538acfc7b40dba3c8009144b",
+      "files": {
+        "LICENSE": "85dc6f5ccb57a6fe8c33d158f9fc8fc7ee5655a5d3db2cdd131c6a3d0f48a864",
+        "encodings.json": "078212b3697f60b81225b6671bd9da2604497abff0aa8e96e4d46605c02ac9e7",
+        "indexes.json": "b7c8961095f0b4cae8f4a16a5011e7c84047a60c1277e28ee8df9e56074ee509"
+      }
+    },
+    "wpt": {
+      "repository": "web-platform-tests/wpt",
+      "revision": "ce5ca39646886a9349fc42913f843ec6e1c8a36f",
+      "files": {
+        "LICENSE.md": "5fac07febb0e2a97fb0d7b0def149ec08b642e1ba4b9c345283ab1cbd2af6570",
+        "encoding/big5-encoder.html": "0d12de658370727092899ba8e6357b54a263838171ade191645b3a0290383176",
+        "encoding/iso-2022-jp-decoder.any.js": "58a1d6da949d4bd09f966dc5c311624efba887474fa26310127d8e07417a704d",
+        "encoding/iso-2022-jp-encoder.html": "904fc0bc930138c6490c7243591a01a1476376e890c923cfe58fe9004f6fbabf",
+        "encoding/legacy-mb-japanese/euc-jp/eucjp-decoder.js": "9b6498633f558344a1b68cd46c330fed4a592c77171c923982588e680808a595",
+        "encoding/legacy-mb-japanese/euc-jp/eucjp-encoder.js": "9e554c1474ac7f14020e0d69feb230b480dce512b0f5ab0fece3142f6f85c710",
+        "encoding/legacy-mb-japanese/euc-jp/jis0208_index.js": "ed50c9cc0bdfad061b6974e989348b21349e790b6b910a5710f646f063032c36",
+        "encoding/legacy-mb-japanese/euc-jp/jis0212_index.js": "507f1080836bd787b425c7b7979126ca8658ce8d71bc9d7d2a48929b7998a002",
+        "encoding/legacy-mb-japanese/iso-2022-jp/iso2022jp-decoder.js": "9c72ff7ffe716239e2c7cf7859596060fa5950392daf6ffa2f6b22aa0382582c",
+        "encoding/legacy-mb-japanese/iso-2022-jp/iso2022jp-encoder.js": "017d7055f3c2d5e9690c362feb2420899df2549893b851235ae1ae1b91f06d16",
+        "encoding/legacy-mb-japanese/iso-2022-jp/jis0208_index.js": "ed50c9cc0bdfad061b6974e989348b21349e790b6b910a5710f646f063032c36",
+        "encoding/legacy-mb-japanese/shift_jis/jis0208_index.js": "ed50c9cc0bdfad061b6974e989348b21349e790b6b910a5710f646f063032c36",
+        "encoding/legacy-mb-japanese/shift_jis/sjis-decoder.js": "4e32a3c950a999fca2736c274fbfd7cb607f153aa8fa5418674e89f3ce7de502",
+        "encoding/legacy-mb-japanese/shift_jis/sjis-encoder.js": "7a67780f39a1538379d26c9b66ec45e3437f5c399ffb970aeb2a84fc36b849d1",
+        "encoding/legacy-mb-korean/euc-kr/euckr-decoder.js": "02c5d87c62fbc760e535edd4a6c640b7029ea7978cc93a6e147b7e7b4a6d0731",
+        "encoding/legacy-mb-korean/euc-kr/euckr-encoder.js": "1b7a8bef653177e6240233ec4ff7616f5ee16dab8ced4538edb4af193cb6e76f",
+        "encoding/legacy-mb-korean/euc-kr/euckr_index.js": "38f6032d7a111921f132078db3ee7d58dcb48e47bb34928be0b2fbdbae89b51b",
+        "encoding/legacy-mb-schinese/gb18030/gb18030-decoder.any.js": "c7871d3d6fcf91b59519ae299ca620d912760f4d47d4656026f73d4a207ec11d",
+        "encoding/legacy-mb-schinese/gb18030/gb18030-encoder.html": "83a43443a87fa43adb8cb5dc518b3661e5ec4424d463ea7e36dd5499180c778f",
+        "encoding/legacy-mb-schinese/gb18030/resources/ranges.js": "8b730dc548944e5923e9e94e5ea2dc2730a6d0f0de65c638c0c700f6a9d0af1a",
+        "encoding/legacy-mb-schinese/gbk/gbk-decoder.any.js": "8ba750a62001e502135fdec8698e45744838bb1ff3008ac3e49f86fbcf8b4dbf",
+        "encoding/legacy-mb-schinese/gbk/gbk-encoder.html": "967636872dd1db8ec4a0e20f4bb785d165dd45a0c58cf7139ace84296ab19d8f",
+        "encoding/legacy-mb-tchinese/big5/big5-decoder.js": "c7dada0582ea0a17779b7ce39a4cd6e16b6d6ae49419e8db41630ae3083e6b62",
+        "encoding/legacy-mb-tchinese/big5/big5-encoder.js": "a58953006f9e8a37858ab309ee9ff5f91b3b481076226e3fa0f55098001c08a5",
+        "encoding/legacy-mb-tchinese/big5/big5_index.js": "9f51cc172b6f390b7619b8799d493f6ed8bf92e19e247ceb3843285a172b5eb1",
+        "encoding/resources/encodings.js": "1742a28bafab3e3de2fa4a394366af3796d45c46587a51ba98e4fa90ca64ea64",
+        "encoding/resources/single-byte-decoder.js": "c37feb2d219bd28e72f02d8559f55d1315d81b627371f2af797d117c606cc081",
+        "encoding/textdecoder-byte-order-marks.any.js": "dd73fab542fe5d7fea58b5ca7bffc916c3535dd0069bc537ae5f41d4c3996361",
+        "encoding/textdecoder-eof.any.js": "cf01fd20aa0dc4ea6f450e276aeaed7e477bd58811bb2b0c97897e7ddb204ed1",
+        "encoding/textdecoder-fatal.any.js": "083a058a10a2bdc77e1da32d0acda791b568a6701c49db10cec2bfa1f7b9eab8",
+        "encoding/textdecoder-ignorebom.any.js": "f0ecc2649c9d12e1ea0556d3eac82d78de15d9466301ec4997add573d39bebe1",
+        "encoding/textdecoder-utf16-surrogates.any.js": "f04fabfe9a6fe3f24eb66e4967637cb73b6b874a33bd5214d27af1d38ed17f3f"
+      }
+    }
+  }
+}

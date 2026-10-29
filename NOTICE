@@ -1,0 +1,20 @@
+encoding.cr
+Copyright 2026 Julien Portalier
+
+Original project code is licensed under Apache License 2.0 (LICENSE).
+
+WHATWG Encoding Standard, mapping indexes, labels, and adapted algorithms:
+Copyright © WHATWG (Apple, Google, Mozilla, Microsoft).
+https://github.com/whatwg/encoding
+Upstream text/data: Creative Commons Attribution 4.0 International.
+Portions incorporated into source code: BSD 3-Clause.
+The complete upstream notices and license terms are in licenses/WHATWG.txt.
+Generated src/encoding/data.cr derives from these mapping indexes and labels.
+
+Web Platform Tests (encoding tests, reference codecs, and adapted fixtures):
+Copyright © web-platform-tests contributors.
+https://github.com/web-platform-tests/wpt
+BSD 3-Clause; see licenses/WPT.md for the complete notices and terms.
+The fixtures in spec/fixtures derive from the pinned WPT encoding sources.
+
+Pinned revisions and SHA-256 checksums are listed in sources.lock.json.
