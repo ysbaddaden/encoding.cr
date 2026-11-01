@@ -13,7 +13,47 @@ describe "encoding/patch" do
     String.new(Bytes[0xff, 0x41], "UTF-8", :skip).should eq("A")
     expect_raises(ArgumentError) { "💩".encode("windows-1252") }
     "A💩B".encode("windows-1252", :skip).should eq(Bytes[0x41, 0x42])
-    expect_raises(ArgumentError) { "A".encode("UTF-8", :replace) }
+    "A".encode("UTF-8", :replace).should eq(Bytes[0x41])
+  end
+
+  it "replaces conversion errors in strings" do
+    String.new(Bytes[0xff, 0x41], "UTF-8", :replace).should eq("�A")
+    String.new(Bytes[0xff, 0x41], "UTF-8", :replace, replacement: "[bad]").should eq("[bad]A")
+    "A💩B".encode("windows-1252", :replace).should eq("A?B".to_slice)
+    "A💩B".encode("windows-1252", :replace, replacement: "é").should eq(Bytes[0x41, 0xe9, 0x42])
+    "A💩B".encode("windows-1252", :replace, replacement: "").should eq("AB".to_slice)
+    expect_raises(ArgumentError) { "💩".encode("windows-1252", :replace, replacement: "日本") }
+    expect_raises(ArgumentError) { String.new(Bytes[0xff], "UTF-8", :replace, replacement: "\xff") }
+  end
+
+  it "replaces malformed and truncated IO input" do
+    io = IO::Memory.new(Bytes[0xff, 0x41, 0xe2])
+    io.set_encoding("UTF-8", :replace)
+    io.gets_to_end.should eq("�A�")
+
+    io = IO::Memory.new(Bytes[0xff, 0x41, 0xe2])
+    io.set_encoding("UTF-8", :replace, replacement: "日本")
+    io.gets_to_end.should eq("日本A日本")
+  end
+
+  it "uses replacement options when converting memory IO to a string" do
+    io = IO::Memory.new(Bytes[0xff, 0x41])
+    io.set_encoding("UTF-8", :replace, replacement: "[bad]")
+    io.to_s.should eq("[bad]A")
+  end
+
+  it "replaces unrepresentable and truncated IO output" do
+    io = IO::Memory.new
+    io.set_encoding("windows-1252", :replace, replacement: "é")
+    io << "A💩"
+    io.write_string(Bytes[0xe2])
+    io.set_encoding("UTF-8")
+    io.to_slice.should eq(Bytes[0x41, 0xe9, 0xe9])
+
+    io = IO::Memory.new
+    io.set_encoding("windows-1252", :replace)
+    io << "💩"
+    io.to_s.should eq("?")
   end
 
   it "supports IO text operations and raw bytes" do
@@ -424,7 +464,7 @@ describe "stdlib IO encoding compatibility" do
 
       it "says invalid 'invalid' option" do
         io = PatchSimpleIOMemory.new
-        expect_raises ArgumentError, "Valid values for `invalid` option are `nil` and `:skip`, not :foo" do
+        expect_raises ArgumentError, "Valid values for `invalid` option are `nil`, `:skip` and `:replace`, not :foo" do
           io.set_encoding("EUC-JP", invalid: :foo)
         end
       end

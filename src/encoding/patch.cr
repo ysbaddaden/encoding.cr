@@ -2,18 +2,33 @@ require "../encoding"
 require "weak_ref"
 
 class String
+  def self.new(bytes : Bytes, encoding : String, invalid : Symbol? = nil, replacement : String? = nil) : String
+    String.build do |str|
+      String.encode(bytes, encoding, "UTF-8", str, invalid, replacement)
+    end
+  end
+
+  def encode(encoding : String, invalid : Symbol? = nil, replacement : String? = nil) : Bytes
+    io = IO::Memory.new
+    String.encode(to_slice, "UTF-8", encoding, io, invalid, replacement)
+    io.to_slice
+  end
+
   # :nodoc:
-  def self.encode(slice, from, to, io, invalid)
+  def self.encode(slice, from, to, io, invalid, replacement : String? = nil)
     IO::EncodingOptions.check_invalid(invalid)
-    errors = invalid == :skip ? ::Encoding::ErrorMode::Replace : ::Encoding::ErrorMode::Strict
-    decoder = ::Encoding::Decoder.new(from, errors: errors, replacement: "", bom: :preserve)
-    encoder = ::Encoding::Encoder.new(to, errors: errors, replacement: "")
+
+    errors = invalid.nil? ? ::Encoding::ErrorMode::Strict : ::Encoding::ErrorMode::Replace
+    decoder = ::Encoding::Decoder.new(from, errors, replacement || (invalid == :skip ? "" : ::Encoding::Decoder::DEFAULT_REPLACEMENT), bom: :preserve)
+    encoder = ::Encoding::Encoder.new(to, errors, replacement || (invalid == :skip ? "" : ::Encoding::Encoder::DEFAULT_REPLACEMENT))
+
     position = 0
     while position < slice.size
       count = Math.min(4096, slice.size - position)
       encoder.feed(decoder.feed(slice[position, count]), io)
       position += count
     end
+
     encoder.feed(decoder.finish, io)
     encoder.finish(io)
   rescue ex : ::Encoding::Error
@@ -22,6 +37,34 @@ class String
 end
 
 class IO
+  struct EncodingOptions
+    getter replacement : String?
+
+    def initialize(@name : String, @invalid : Symbol?, @replacement : String? = nil)
+      EncodingOptions.check_invalid(@invalid)
+
+      if replacement = @replacement
+        raise ArgumentError.new("Replacement must be valid UTF-8") unless replacement.valid_encoding?
+      end
+    end
+
+    def self.check_invalid(invalid : Symbol?) : Nil
+      unless invalid.nil? || invalid == :skip || invalid == :replace
+        raise ArgumentError.new("Valid values for `invalid` option are `nil`, `:skip` and `:replace`, not #{invalid.inspect}")
+      end
+    end
+  end
+
+  def set_encoding(encoding : String, invalid : Symbol? = nil, *, replacement : String? = nil) : Nil
+    options = EncodingOptions.new(encoding, invalid, replacement)
+    @encoder.try(&.close)
+    @decoder.try(&.close)
+    @encoding = utf8_encoding?(encoding, invalid) ? nil : options
+    @encoder = nil
+    @decoder = nil
+    nil
+  end
+
   private class Encoder
     @codec : ::Encoding::Encoder
     # The IO owns its encoder. A strong reference back to it would create a
@@ -31,9 +74,10 @@ class IO
 
     def initialize(@encoding_options : EncodingOptions)
       options = @encoding_options
-      errors = options.invalid == :skip ? ::Encoding::ErrorMode::Replace : ::Encoding::ErrorMode::Strict
+      errors = options.invalid.nil? ? ::Encoding::ErrorMode::Strict : ::Encoding::ErrorMode::Replace
+      replacement = options.replacement || (options.invalid == :skip ? "" : ::Encoding::Encoder::DEFAULT_REPLACEMENT)
       @codec = begin
-        ::Encoding::Encoder.new(options.name, errors: errors, replacement: "")
+        ::Encoding::Encoder.new(options.name, errors, replacement)
       rescue ex : ::Encoding::Error
         raise ArgumentError.new(ex.message)
       end
@@ -73,9 +117,10 @@ class IO
 
     def initialize(@encoding_options : EncodingOptions)
       options = @encoding_options
-      errors = options.invalid == :skip ? ::Encoding::ErrorMode::Replace : ::Encoding::ErrorMode::Strict
+      errors = options.invalid.nil? ? ::Encoding::ErrorMode::Strict : ::Encoding::ErrorMode::Replace
+      replacement = options.replacement || (options.invalid == :skip ? "" : ::Encoding::Decoder::DEFAULT_REPLACEMENT)
       @codec = begin
-        ::Encoding::Decoder.new(options.name, errors: errors, replacement: "", bom: :preserve)
+        ::Encoding::Decoder.new(options.name, errors, replacement, bom: :preserve)
       rescue ex : ::Encoding::Error
         raise ArgumentError.new(ex.message)
       end
@@ -98,8 +143,9 @@ class IO
       raise ArgumentError.new(ex.message)
     end
 
-    # With iconv enabled, reuse the stdlib buffer consumers unchanged.
     {% if flag?(:without_iconv) %}
+      # The flag defines stub methods. Reimplement them (stdlib copy-paste).
+
       def read_byte(io : IO) : UInt8?
         read(io)
         if out_slice.empty?
@@ -216,23 +262,21 @@ class IO
   end
 end
 
-{% if flag?(:without_iconv) %}
-  class IO::Memory
-    def to_s : String
-      if encoding = @encoding
-        String.new(to_slice, encoding.name, encoding.invalid)
-      else
-        String.new(@buffer, @bytesize)
-      end
-    end
-
-    def to_s(io : IO) : Nil
-      increase_capacity_by(bytesize) if io == self
-      if encoding = @encoding
-        String.encode(to_slice, encoding.name, io.encoding, io, io.@encoding.try(&.invalid))
-      else
-        io.write(to_slice)
-      end
+class IO::Memory
+  def to_s : String
+    if encoding = @encoding
+      String.new(to_slice, encoding.name, encoding.invalid, encoding.replacement)
+    else
+      String.new(@buffer, @bytesize)
     end
   end
-{% end %}
+
+  def to_s(io : IO) : Nil
+    increase_capacity_by(bytesize) if io == self
+    if encoding = @encoding
+      String.encode(to_slice, encoding.name, io.encoding, io, io.@encoding.try(&.invalid), io.@encoding.try(&.replacement))
+    else
+      io.write(to_slice)
+    end
+  end
+end

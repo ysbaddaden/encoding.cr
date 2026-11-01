@@ -11,6 +11,8 @@ module Encoding
       Failed
     end
 
+    DEFAULT_REPLACEMENT = "?"
+
     getter encoding : Descriptor
     getter errors : ErrorMode
     getter replacement : String
@@ -20,7 +22,7 @@ module Encoding
     @iterator = UTF8.new
     @state : State = :initial
 
-    def initialize(encoding : String = "utf-8", @errors : ErrorMode = :replace, @replacement : String = "?", @bom : Bool = false)
+    def initialize(encoding : String = "utf-8", @errors : ErrorMode = :replace, @replacement : String = DEFAULT_REPLACEMENT, @bom : Bool = false)
       @encoding = Encoding.find(encoding)
 
       unless @encoding.can_encode?

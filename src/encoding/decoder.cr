@@ -10,6 +10,8 @@ module Encoding
       Failed
     end
 
+    DEFAULT_REPLACEMENT = "\uFFFD"
+
     getter encoding : Descriptor
     getter errors : ErrorMode
     getter bom : BOMPolicy
@@ -21,7 +23,7 @@ module Encoding
     @resolved = false
     @state : State = :active
 
-    def initialize(encoding : String = "utf-8", @errors : ErrorMode = :replace, @replacement : String = "\uFFFD", @bom : BOMPolicy = :detect)
+    def initialize(encoding : String = "utf-8", @errors : ErrorMode = :replace, @replacement : String = DEFAULT_REPLACEMENT, @bom : BOMPolicy = :detect)
       raise ArgumentError.new("Replacement must be valid UTF-8") unless @replacement.valid_encoding?
       @requested = @encoding = Encoding.find(encoding)
       @reader = Reader.for(@encoding.name)
