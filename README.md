@@ -29,6 +29,30 @@ charset.can_encode? # => true
 Encoding.encodings # descriptors for all supported encodings
 ```
 
+## Optional stdlib integration
+
+```crystal
+require "encoding/patch"
+
+String.new(Bytes[0x63, 0x61, 0x66, 0xe9], "windows-1252") # => "café"
+"café".encode("windows-1252") # => Bytes[0x63, 0x61, 0x66, 0xe9]
+
+io = IO::Memory.new(Bytes[0xe9, 0x0a])
+io.set_encoding("windows-1252")
+io.gets # => "é"
+```
+
+The opt-in patch routes stdlib string conversion and IO text operations through
+this shard, including builds with `-Dwithout_iconv`. Raw IO reads and writes
+remain byte operations. The stdlib signatures retain their options:
+`invalid: nil` raises on conversion errors, and `invalid: :skip` discards them.
+BOMs are preserved on decoding. Encoding names and mappings follow this shard's
+WHATWG rules; the broader iconv charset set is unavailable. Conversion failures
+raise `ArgumentError` with this shard's error messages.
+
+`String.from_utf16` and `String#to_utf16` retain their stdlib implementations.
+Requiring only `encoding` does not install the patch.
+
 ## Supported encodings and aliases
 
 All WHATWG labels are accepted, case-insensitively, with leading and trailing

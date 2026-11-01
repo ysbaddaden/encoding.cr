@@ -18,3 +18,15 @@ BSD 3-Clause; see licenses/WPT.md for the complete notices and terms.
 The fixtures in spec/fixtures derive from the pinned WPT encoding sources.
 
 Pinned revisions and SHA-256 checksums are listed in sources.lock.json.
+
+Crystal standard library specs and regression fixtures:
+Copyright 2012-2026 Manas Technology Solutions.
+This product includes software developed at Manas Technology Solutions
+(https://manas.tech/).
+Copied into spec/patch_spec.cr and spec/fixtures/stdlib from the Crystal
+standard library, with local helper names, fixture paths, hexadecimal byte
+literals, and the outer without_iconv guards removed to exercise the patch.
+Exception message expectations are adapted to this shard; specs for unsupported
+Big5-HKSCS encoding are pending. UCS-2LE passthrough specs use
+UTF-16LE.
+Apache License 2.0 with runtime library exception; see licenses/Crystal.txt.
