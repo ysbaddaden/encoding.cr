@@ -9,6 +9,8 @@ module Encoding
 
       case name
       when "UTF-8"          then UTF8.new
+      when "UTF-32LE"       then UTF32LE.new
+      when "UTF-32BE"       then UTF32BE.new
       when "UTF-16LE"       then UTF16LE.new
       when "UTF-16BE"       then UTF16BE.new
       when "GBK"            then GBK.new
@@ -112,6 +114,26 @@ module Encoding
 
     private def unit(value : Int32, output : IO) : Nil
       put(output, value >> 8, value & 255)
+    end
+  end
+
+  struct Writer::UTF32LE < Writer
+    def span_end(input : Bytes, position : Int32) : Int32
+      position
+    end
+
+    def write(cp : Int32, output : IO) : Bool
+      put(output, cp & 255, (cp >> 8) & 255, (cp >> 16) & 255, cp >> 24)
+    end
+  end
+
+  struct Writer::UTF32BE < Writer
+    def span_end(input : Bytes, position : Int32) : Int32
+      position
+    end
+
+    def write(cp : Int32, output : IO) : Bool
+      put(output, cp >> 24, (cp >> 16) & 255, (cp >> 8) & 255, cp & 255)
     end
   end
 

@@ -134,7 +134,7 @@ describe Encoding do
   end
 
   it "rejects unknown, unsupported, and Unicode-lookalike labels" do
-    {"", "utf-32", "utf-7", "\vutf-8", "utf-8\u00A0", "Koi8-r", "iso-8859-12"}.each do |label|
+    {"", "utf-7", "\vutf-8", "utf-8\u00A0", "Koi8-r", "iso-8859-12"}.each do |label|
       expect_raises(Encoding::UnknownEncodingError) { Encoding.find(label) }
     end
     Encoding.find("ascii").name.should eq("windows-1252")

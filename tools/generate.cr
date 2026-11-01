@@ -48,6 +48,10 @@ source = String.build do |io|
       encoding["labels"].as_a.each { |label| labels[label.as_s] = encoding["name"].as_s }
     end
   end
+  # UTF-32 is supported as an extension to the WHATWG encoding set.
+  labels["utf-32"] = "UTF-32LE"
+  labels["utf-32le"] = "UTF-32LE"
+  labels["utf-32be"] = "UTF-32BE"
   labels.keys.sort!.each { |label| io << "    #{label.inspect} => #{labels[label].inspect},\n" }
 
   io << "  }\n  end\nend\n"

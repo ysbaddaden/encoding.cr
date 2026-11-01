@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 describe "BOM policies" do
-  signatures = {"utf-8" => Bytes[0xef, 0xbb, 0xbf], "utf-16le" => Bytes[0xff, 0xfe], "utf-16be" => Bytes[0xfe, 0xff]}
+  signatures = {"utf-8" => Bytes[0xef, 0xbb, 0xbf], "utf-16le" => Bytes[0xff, 0xfe], "utf-16be" => Bytes[0xfe, 0xff], "utf-32le" => Bytes[0xff, 0xfe, 0x00, 0x00], "utf-32be" => Bytes[0x00, 0x00, 0xfe, 0xff]}
 
   signatures.each do |encoding, signature|
     it "detects #{encoding} across every split and overrides the requested charset" do
@@ -11,6 +11,7 @@ describe "BOM policies" do
       end
       decoder = Encoding::Decoder.new("windows-1252")
       decoder.feed(signature).should eq("")
+      decoder.finish if encoding == "utf-16le" # Disambiguate the UTF-32LE BOM prefix at EOF.
       decoder.encoding.name.should eq(Encoding.find(encoding).name)
       decoder.reset.encoding.name.should eq("windows-1252")
     end
@@ -32,6 +33,25 @@ describe "BOM policies" do
       encoder.finish.should eq(Bytes.empty)
       encoder.reset.finish.should eq(signature)
     end
+  end
+
+  it "waits for UTF-32LE before falling back to UTF-16LE" do
+    decoder = Encoding::Decoder.new
+    decoder.feed(Bytes[0xff, 0xfe]).should eq("")
+    decoder.feed(Bytes[0x41]).should eq("")
+    decoder.encoding.name.should eq("UTF-16LE")
+    decoder.feed(Bytes[0x00]).should eq("A")
+    decoder.finish.should eq("")
+
+    decoder = Encoding::Decoder.new
+    decoder.feed(Bytes[0xff, 0xfe, 0x00]).should eq("")
+    decoder.finish.should eq("�")
+    decoder.encoding.name.should eq("UTF-16LE")
+
+    decoder = Encoding::Decoder.new
+    decoder.feed(Bytes[0xff, 0xfe]).should eq("")
+    decoder.finish.should eq("")
+    decoder.encoding.name.should eq("UTF-16LE")
   end
 
   it "does not buffer an ordinary ASCII prefix" do

@@ -4,8 +4,8 @@ Pure Crystal conversion between external character encodings and UTF-8. There
 are no dependencies (Shards or C libraries).
 
 Mappings and codec algorithms follow the [WHATWG Encoding Standard]. The initial
-charset set is the standard's set, with UTF-16LE and UTF-16BE encoding added for
-conversion in both directions.
+charset set is the standard's set, with UTF-16 encoding and UTF-32LE/BE conversion added
+as extensions.
 
 ## Usage
 
@@ -35,12 +35,14 @@ All WHATWG labels are accepted, case-insensitively, with leading and trailing
 ASCII whitespace ignored. Names returned by descriptors use WHATWG canonical
 spelling. Aliases are deliberately WHATWG aliases: `ascii`, `latin1`, and
 `iso-8859-1` mean Windows-1252; `iso-8859-9` means Windows-1254; `utf-16` and
-`unicode` mean UTF-16LE. Unknown labels raise `UnknownEncodingError`.
+`unicode` mean UTF-16LE. The extension label `utf-32` means UTF-32LE. Unknown
+labels raise `UnknownEncodingError`.
 
 The charset set includes:
 
 - UTF-8
 - UTF-16LE/BE
+- UTF-32LE/BE (extension)
 - IBM866
 - the standard's ISO-8859 and Windows single-byte encodings
 - KOI8-R/U
@@ -55,8 +57,7 @@ The charset set includes:
 - EUC-KR
 - and x-user-defined
 
-It doesn't include the broader iconv charset set, such as UTF-32 or arbitrary
-IANA aliases.
+It doesn't include the broader iconv charset set or arbitrary IANA aliases.
 
 The standard's `replacement` pseudo-encoding and its aliases decode the first
 nonempty input to a single replacement and discard the rest. They have no
@@ -94,10 +95,11 @@ which raise `ArgumentError`.
 
 ## BOM policy
 
-Decoding defaults to `bom: :detect`: a leading UTF-8, UTF-16LE, or UTF-16BE BOM
+Decoding defaults to `bom: :detect`: a leading UTF-8, UTF-16LE/BE, or UTF-32LE/BE BOM
 selects that encoding, overriding the requested charset, and is consumed. Without
-a BOM the requested charset is used. Detection buffers at most three initial
-bytes and works across chunk boundaries. UTF-32 BOM detection is not supported.
+a BOM the requested charset is used. Detection buffers at most four initial
+bytes and works across chunk boundaries. UTF-16LE detection may wait for more
+input to distinguish its BOM from UTF-32LE.
 
 - `bom: :strip` disables overrides and consumes only an initial BOM matching the
   requested Unicode charset. Legacy encodings decode all input bytes normally.
@@ -105,9 +107,9 @@ bytes and works across chunk boundaries. UTF-32 BOM detection is not supported.
   encoding an input BOM becomes U+FEFF in the output string.
 
 Only one initial BOM is consumed. Embedded or repeated BOMs remain text. Encoding
-omits a BOM unless `bom: true` is passed; emission is supported only for UTF-8
-and UTF-16 and otherwise raises `ArgumentError`. Even empty output receives a BOM
-when emission is requested.
+omits a BOM unless `bom: true` is passed; emission is supported only for UTF-8,
+UTF-16, and UTF-32 and otherwise raises `ArgumentError`. Even empty output
+receives a BOM when emission is requested.
 
 These library defaults differ from the standard's JavaScript API: conformance
 specs select the appropriate explicit BOM policy when comparing codec behavior.

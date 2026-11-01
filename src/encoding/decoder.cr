@@ -16,7 +16,7 @@ module Encoding
     getter replacement : String
     @requested : Descriptor
     @reader : Reader
-    @prefix = uninitialized UInt8[3]
+    @prefix = uninitialized UInt8[4]
     @prefix_size = 0
     @resolved = false
     @state : State = :active
@@ -61,7 +61,7 @@ module Encoding
           convert(bytes, final, output)
         else
           # Inspect only the initial prefix. Do not delay ordinary input until
-          # three bytes have arrived, and never buffer the rest of the stream.
+          # four bytes have arrived, and never buffer the rest of the stream.
           consumed = 0
 
           while !@resolved && consumed < bytes.size
@@ -91,32 +91,33 @@ module Encoding
 
     private def resolve_bom(final : Bool) : Nil
       possible = false
+      matched_name = nil
+      matched_size = 0
 
       BOM_SIGNATURES.each do |name, signature|
         next if @bom.strip? && name != @requested.name
-        next if @prefix_size > signature.size
-        next unless prefix_matches?(signature)
+        count = Math.min(@prefix_size, signature.size)
+        next unless count.times.all? { |i| @prefix[i] == signature[i] }
 
-        possible = true
-        if @prefix_size == signature.size
-          @encoding = Encoding.find(name)
-          @reader = Reader.for(name, signature.size.to_i64)
-          @prefix_size = 0
-          @resolved = true
-          return
+        if @prefix_size < signature.size
+          possible = true
+        elsif signature.size > matched_size
+          matched_name = name
+          matched_size = signature.size
         end
       end
 
-      if !possible || final
-        @resolved = true
-      end
-    end
+      # UTF-16LE's BOM is also a prefix of UTF-32LE's BOM. Wait until
+      # disambiguated, or choose the complete shorter signature at EOF.
+      return if possible && !final
 
-    private def prefix_matches?(signature) : Bool
-      @prefix_size.times do |i|
-        return false unless @prefix[i] == signature[i]
+      if name = matched_name
+        @encoding = Encoding.find(name)
+        @reader = Reader.for(name, matched_size.to_i64)
+        @prefix_size -= matched_size
+        @prefix_size.times { |i| @prefix[i] = @prefix[i + matched_size] }
       end
-      true
+      @resolved = true
     end
 
     private def convert(bytes : Bytes, final : Bool, output : IO) : Nil

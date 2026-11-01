@@ -27,8 +27,8 @@ module Encoding
         raise UnsupportedEncodingError.new("No encoder for #{@encoding.name}")
       end
 
-      if @bom && !{"UTF-8", "UTF-16LE", "UTF-16BE"}.includes?(@encoding.name)
-        raise ArgumentError.new("BOM emission requires UTF-8 or UTF-16")
+      if @bom && !{"UTF-8", "UTF-16LE", "UTF-16BE", "UTF-32LE", "UTF-32BE"}.includes?(@encoding.name)
+        raise ArgumentError.new("BOM emission requires UTF-8, UTF-16, or UTF-32")
       end
 
       unless @replacement.valid_encoding?
@@ -38,7 +38,7 @@ module Encoding
       @writer = Writer.for(@encoding.name)
       name = @encoding.name
 
-      if @replacement.empty? || @encoding.name == "UTF-8" || (@replacement.ascii_only? && !@encoding.name.in?("UTF-16LE", "UTF-16BE", "ISO-2022-JP"))
+      if @replacement.empty? || @encoding.name == "UTF-8" || (@replacement.ascii_only? && !@encoding.name.in?("UTF-16LE", "UTF-16BE", "UTF-32LE", "UTF-32BE", "ISO-2022-JP"))
         # fast-path: can use the replacement as-is
         @replacement_bytes = @replacement.to_slice
         return

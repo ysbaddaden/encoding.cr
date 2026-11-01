@@ -20,6 +20,8 @@ module Encoding
 
       case name
       when "UTF-8"          then UTF8.new(offset)
+      when "UTF-32LE"       then UTF32LE.new(offset)
+      when "UTF-32BE"       then UTF32BE.new(offset)
       when "UTF-16LE"       then UTF16LE.new(offset)
       when "UTF-16BE"       then UTF16BE.new(offset)
       when "GBK"            then Chinese.new(offset)
@@ -172,6 +174,32 @@ module Encoding
   struct Reader::UTF16BE < Reader::UTF16
     private def unit(i : Int32) : Int32
       (b(i) << 8) | b(i + 1)
+    end
+  end
+
+  abstract struct Reader::UTF32 < Reader
+    private def span_end : Int32
+      @cursor.position
+    end
+
+    private abstract def unit : UInt32
+
+    private def step(final : Bool) : Token
+      return final ? token(@cursor.remaining, -1) : WAIT_TOKEN if @cursor.remaining < 4
+      cp = unit
+      token(4, cp > 0x10ffff || (0xd800..0xdfff).includes?(cp) ? -1 : cp.to_i32)
+    end
+  end
+
+  struct Reader::UTF32LE < Reader::UTF32
+    private def unit : UInt32
+      b.to_u32 | (b(1).to_u32 << 8) | (b(2).to_u32 << 16) | (b(3).to_u32 << 24)
+    end
+  end
+
+  struct Reader::UTF32BE < Reader::UTF32
+    private def unit : UInt32
+      (b.to_u32 << 24) | (b(1).to_u32 << 16) | (b(2).to_u32 << 8) | b(3).to_u32
     end
   end
 

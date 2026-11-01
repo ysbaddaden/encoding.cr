@@ -21,6 +21,8 @@ module Encoding
   end
 
   private BOM_SIGNATURES = {
+    {"UTF-32LE", {0xff_u8, 0xfe_u8, 0x00_u8, 0x00_u8}},
+    {"UTF-32BE", {0x00_u8, 0x00_u8, 0xfe_u8, 0xff_u8}},
     {"UTF-8", {0xef_u8, 0xbb_u8, 0xbf_u8}},
     {"UTF-16LE", {0xff_u8, 0xfe_u8}},
     {"UTF-16BE", {0xfe_u8, 0xff_u8}},
