@@ -4,8 +4,7 @@ Pure Crystal conversion between external character encodings and UTF-8. There
 are no dependencies (Shards or C libraries).
 
 Mappings and codec algorithms follow the [WHATWG Encoding Standard]. The initial
-charset set is the standard's set, with UTF-16 encoding and UTF-32LE/BE conversion added
-as extensions.
+charset set is the standard's set, with UTF-16 and UTF-32 added as extensions.
 
 ## Usage
 
@@ -29,7 +28,17 @@ charset.can_encode? # => true
 Encoding.encodings # descriptors for all supported encodings
 ```
 
-## Optional stdlib integration
+## Optional stdlib monkey-patch
+
+Requiring `encoding/patch` routes stdlib string conversion and IO text
+operations through the encoding shard, including builds with `-Dwithout_iconv`.
+Raw IO reads and writes remain byte operations. The stdlib signatures retain
+their options: `invalid: nil` raises on conversion errors, and `invalid: :skip`
+discards them.
+
+BOMs are preserved on decoding. Encoding names and mappings follow this shard's
+WHATWG rules; the broader iconv charset set is unavailable. Conversion failures
+raise `ArgumentError` with this shard's error messages.
 
 ```crystal
 require "encoding/patch"
@@ -42,16 +51,13 @@ io.set_encoding("windows-1252")
 io.gets # => "é"
 ```
 
-The opt-in patch routes stdlib string conversion and IO text operations through
-this shard, including builds with `-Dwithout_iconv`. Raw IO reads and writes
-remain byte operations. The stdlib signatures retain their options:
-`invalid: nil` raises on conversion errors, and `invalid: :skip` discards them.
-BOMs are preserved on decoding. Encoding names and mappings follow this shard's
-WHATWG rules; the broader iconv charset set is unavailable. Conversion failures
-raise `ArgumentError` with this shard's error messages.
+The patch also accepts `invalid: :replace`, using `�` (U+FFFD) when decoding and
+`?` when encoding. Pass `replacement: "[bad]"` to `IO#set_encoding`,
+`String.new`, or `String#encode` to customize replacement; use `""` to discard
+errors (same as `invalid: :skip`). Replacement strings must be valid UTF-8 and
+representable in the output encoding.
 
 `String.from_utf16` and `String#to_utf16` retain their stdlib implementations.
-Requiring only `encoding` does not install the patch.
 
 ## Supported encodings and aliases
 
@@ -114,6 +120,7 @@ Encoding.encode("💩", "windows-1252", errors: :strict) # raises UndefinedConve
 `offset` (zero-based absolute input byte position). Malformed-input offsets
 identify the beginning of the malformed sequence. Encoder offsets refer to UTF-8
 input bytes, not character indices. Decoder offsets include any consumed BOM.
+
 All library exceptions inherit from `Encoding::Error` except invalid options,
 which raise `ArgumentError`.
 
@@ -167,6 +174,7 @@ new stream with the original options, requested charset, offsets, and BOM policy
 Descriptors can also construct converters using `charset.decoder(...)` and
 `charset.encoder(...)`. Use a separate converter per concurrent stream.
 
+<!--
 ## IO conversion
 
 ```crystal
@@ -197,6 +205,7 @@ Both adapters leave their underlying IO open by default. Pass
 `close_underlying: true` to transfer ownership. Closing is idempotent; owned
 output is closed even if encoder finalization fails. Like ordinary streaming IO,
 a failure can occur after earlier output has already been written.
+-->
 
 ## License
 

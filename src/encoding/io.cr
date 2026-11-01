@@ -2,6 +2,8 @@ require "./decoder"
 require "./encoder"
 
 module Encoding
+  # :nodoc:
+  #
   # A readable IO whose bytes are UTF-8. Closing does not drain unread input.
   class DecoderIO < IO
     @codec : Encoding::Decoder
@@ -61,6 +63,8 @@ module Encoding
     end
   end
 
+  # :nodoc:
+  #
   # A writable IO accepting UTF-8 bytes. Flush preserves conversion state;
   # finish finalizes it without closing either IO. Close calls finish once.
   class EncoderIO < IO
